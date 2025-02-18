@@ -12,12 +12,14 @@ def _get_scenario(s: str) -> str:
 def _generate_reflection_query(log_str: str, memory: List[str]) -> str:
     """Allows the Agent to reflect upon a past experience."""
     scenario: str = _get_scenario(log_str)
+    #反思的提示词
     query: str = f"""You will be given the history of a past experience in which you were placed in an environment and given a task to complete. You were unsuccessful in completing the task. Do not summarize your environment, but rather think about the strategy and path you took to attempt to complete the task. Devise a concise, new plan of action that accounts for your mistake with reference to specific actions that you should have taken. There are two examples below.
 
 {FEW_SHOT_EXAMPLES}
 
 Instruction: {scenario}"""
-
+#上面是用户的问题
+    
     if len(memory) > 0:
         query += '\n\nPlans from past attempts:\n'
         for i, m in enumerate(memory):
@@ -36,6 +38,7 @@ def update_memory(trial_log_path: str, env_configs: List[Dict[str, Any]]) -> Lis
     for i, env in enumerate(env_configs):
         # if unsolved, get reflection and update env config
         if not env['is_success']:
+            #同一个用户问题，取最近的3条反思记录
             if len(env['memory']) > 3:
                 memory: List[str] = env['memory'][-3:]
             else:
