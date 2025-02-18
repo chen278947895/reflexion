@@ -203,7 +203,7 @@ class webshopEnv:
         self.sessions[session].update(info)
         reward = info.get('reward', 0.0)
         return observation, reward, done
-
+#每次把base prompt与每一步的结果，构造作为环境观察结果
 def webshop_run(idx, env, base_prompt, memory: List[str], to_print=True) -> Tuple[EnvironmentHistory, bool]:
     action = 'reset'
     init_prompt = base_prompt
@@ -270,6 +270,7 @@ def run_trial(
             continue
 
         try:
+            #对一条用户问题，分每一步构造环境
             final_env_history, is_success = webshop_run(f'fixed_{z}', env, BASE_PROMPT, env_config["memory"] if use_memory else [], to_print=True)
             if is_success:
                 status_str: str = f'Environment #{z} Trial #{trial_idx}: SUCCESS'
