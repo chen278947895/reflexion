@@ -39,7 +39,7 @@ class CoTAgent:
                     context: str,
                     key: str,
                     agent_prompt: PromptTemplate = cot_reflect_agent_prompt,
-                    reflect_prompt: PromptTemplate = cot_reflect_prompt,
+                    reflect_prompt: PromptTemplate = cot_reflect_prompt,   #用到的反思提示词
                     cot_examples: str = COT,
                     reflect_examples: str = COT_REFLECT,
                     self_reflect_llm: AnyOpenAILLM = AnyOpenAILLM(
@@ -108,26 +108,26 @@ class CoTAgent:
         print('Running Reflexion strategy...')
         if strategy == ReflexionStrategy.LAST_ATTEMPT:
             self.reflections = [self.scratchpad]
-            self.reflections_str = format_last_attempt(self.question , self.reflections[0])
+            self.reflections_str = format_last_attempt(self.question , self.reflections[0])  #让模型生成最后一步正常结果
         elif strategy == ReflexionStrategy.REFLEXION:
             self.reflections += [self.prompt_reflection()]
-            self.reflections_str = format_reflections(self.reflections)
+            self.reflections_str = format_reflections(self.reflections)  #让模型做反思
         elif strategy == ReflexionStrategy.LAST_ATTEMPT_AND_REFLEXION:
             self.reflections_str = format_last_attempt(self.question , self.scratchpad)
             self.reflections = [self.prompt_reflection()]
-            self.reflections_str += '\n'+ format_reflections(self.reflections, header = REFLECTION_AFTER_LAST_TRIAL_HEADER)
+            self.reflections_str += '\n'+ format_reflections(self.reflections, header = REFLECTION_AFTER_LAST_TRIAL_HEADER)  #让模型先做最后一步正常结果，再继续反思
         else:
             raise NotImplementedError(f'Unknown reflection strategy: {strategy}')
         print(self.reflections_str)
     
     def prompt_reflection(self) -> str:
-        return format_step(self.self_reflect_llm(self._build_reflection_prompt()))
+        return format_step(self.self_reflect_llm(self._build_reflection_prompt()))  #调用基座大模型生成反思结果
 
     def reset(self) -> None:
         
         self.scratchpad: str = ''
         self.finished = False
-
+    #让模型生成最后一步答案
     def prompt_agent(self) -> str:
         return format_step(self.action_llm(self._build_agent_prompt()))
     
@@ -354,7 +354,7 @@ def format_reflections(reflections: List[str],
         return ''
     else:
         return header + 'Reflections:\n- ' + '\n- '.join([r.strip() for r in reflections])
-
+#让模型回答答案，生成最后一步
 def format_last_attempt(question: str,
                         scratchpad: str,
                         header: str = LAST_TRIAL_HEADER):
